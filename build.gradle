@@ -110,3 +110,8 @@ afterEvaluate {
         }
     }
 }
+
+// Disable javadoc generation on JitPack (not supported for Android projects)
+tasks.withType(Javadoc).all {
+    enabled = false
+}
