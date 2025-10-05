@@ -108,6 +108,7 @@ public final class CodeScanner {
     private final ExceptionHandler mExceptionHandler;
     private volatile List<BarcodeFormat> mFormats = DEFAULT_FORMATS;
     private volatile ScanMode mScanMode = DEFAULT_SCAN_MODE;
+    private volatile DisplayOrientation mDisplayOrientation = DisplayOrientation.DEFAULT;
     private volatile AutoFocusMode mAutoFocusMode = DEFAULT_AUTO_FOCUS_MODE;
     private volatile DecodeCallback mDecodeCallback = null;
     private volatile ErrorCallback mErrorCallback = null;
@@ -303,6 +304,25 @@ public final class CodeScanner {
      */
     public void setScanMode(@NonNull final ScanMode scanMode) {
         mScanMode = Objects.requireNonNull(scanMode);
+    }
+
+    /**
+     * Get current display orientation
+     *
+     * @see #setDisplayOrientation
+     */
+    @NonNull
+    public DisplayOrientation getDisplayOrientation() {
+        return mDisplayOrientation;
+    }
+
+    /**
+     * Override display orientation, {@link DisplayOrientation#DEFAULT} by default
+     *
+     * @see DisplayOrientation
+     */
+    public void setDisplayOrientation(@NonNull final DisplayOrientation displayOrientation) {
+        mDisplayOrientation = Objects.requireNonNull(displayOrientation);
     }
 
     /**
@@ -842,7 +862,15 @@ public final class CodeScanner {
             if (parameters == null) {
                 throw new CodeScannerException("Unable to configure camera");
             }
-            final int orientation = Utils.getDisplayOrientation(mContext, cameraInfo);
+
+            final int orientation;
+
+            orientation = switch (mDisplayOrientation) {
+                case ROTATED_0, ROTATED_90, ROTATED_180, ROTATED_270 ->
+                        mDisplayOrientation.getOrientation();
+                default -> Utils.getDisplayOrientation(mContext, cameraInfo);
+            };
+
             final boolean portrait = Utils.isPortrait(orientation);
             final Point imageSize =
                     Utils.findSuitableImageSize(parameters, portrait ? mHeight : mWidth,
